@@ -9,77 +9,72 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
+            background-color: #f3f4f6;
         }
         .container {
             max-width: 800px;
             margin: 2rem auto;
             padding: 1.5rem;
             background-color: white;
-            border-radius: 0.5rem; /* md */
+            border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .form-input, .form-select {
-            border-radius: 0.375rem; /* rounded-md */
-            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
             padding: 0.5rem 0.75rem;
             width: 100%;
             transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-            background-color: white; /* Ensure select has white background */
+            background-color: white;
         }
         .form-input:focus, .form-select:focus {
-            border-color: #4f46e5; /* indigo-600 */
+            border-color: #4f46e5;
             box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
             outline: none;
         }
         .btn {
-            padding: 0.625rem 1.25rem; /* py-2.5 px-5 */
-            border-radius: 0.375rem; /* rounded-md */
-            font-weight: 500; /* medium */
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
             transition: background-color 0.15s ease-in-out;
             cursor: pointer;
         }
         .btn-primary {
-            background-color: #4f46e5; /* indigo-600 */
+            background-color: #4f46e5;
             color: white;
         }
         .btn-primary:hover {
-            background-color: #4338ca; /* indigo-700 */
+            background-color: #4338ca;
         }
         .btn-danger {
-            background-color: #dc2626; /* red-600 */
+            background-color: #dc2626;
             color: white;
         }
         .btn-danger:hover {
-            background-color: #b91c1c; /* red-700 */
+            background-color: #b91c1c;
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* gray-500 */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* gray-600 */
         }
         .table-header {
-            background-color: #e5e7eb; /* gray-200 */
+            background-color: #e5e7eb;
         }
         .error-message {
-            color: #dc2626; /* red-600 */
-            font-size: 0.875rem; /* text-sm */
+            color: #dc2626;
+            font-size: 0.875rem;
             margin-top: 0.25rem;
         }
-        /* Responsive adjustments */
         @media (max-width: 640px) {
-            .container {
-                margin: 1rem;
-                padding: 1rem;
-            }
-            .input-grid {
-                grid-template-columns: repeat(1, minmax(0, 1fr));
-            }
-            .col-span-full {
-                grid-column: span 1 / span 1;
-            }
-            .table th, .table td {
-                padding: 0.5rem;
-                font-size: 0.875rem;
-            }
-            .summary-grid {
-                grid-template-columns: repeat(1, minmax(0, 1fr));
-            }
+            .container { margin: 1rem; padding: 1rem; }
+            .input-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+            .template-management-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 0.5rem; } /* Adjusted for small screens */
+            .col-span-full { grid-column: span 1 / span 1; }
+            .table th, .table td { padding: 0.5rem; font-size: 0.875rem; }
+            .summary-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         }
     </style>
 </head>
@@ -90,11 +85,16 @@
         <div class="mb-8 p-6 bg-gray-50 rounded-lg shadow">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Nhập Thông Tin Sản Phẩm</h2>
 
-            <div class="mb-4">
-                <label for="itemTemplateSelect" class="block text-sm font-medium text-gray-700 mb-1">Chọn Từ Sản Phẩm Đã Lưu</label>
-                <select id="itemTemplateSelect" class="form-select">
-                    <option value="">Chọn mẫu...</option>
+            <div class="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end template-management-grid">
+                <div class="sm:col-span-2">
+                    <label for="itemTemplateSelect" class="block text-sm font-medium text-gray-700 mb-1">Chọn Từ Sản Phẩm Đã Lưu</label>
+                    <select id="itemTemplateSelect" class="form-select">
+                        <option value="">Chọn mẫu...</option>
                     </select>
+                </div>
+                <div>
+                    <button id="deleteTemplateBtn" class="btn btn-secondary w-full text-sm py-2">Xóa Mẫu Đã Chọn</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end input-grid">
@@ -134,7 +134,7 @@
                         <tr id="no-items-row">
                             <td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">Chưa có sản phẩm nào.</td>
                         </tr>
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -176,44 +176,56 @@
         const clearAllBtn = document.getElementById('clearAllBtn');
         const errorMessageEl = document.getElementById('error-message');
         const itemTemplateSelect = document.getElementById('itemTemplateSelect');
+        const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
 
-        // 商品データを格納する配列 (現在計算中の商品リスト)
+        // ローカルストレージキー
+        const TEMPLATE_STORAGE_KEY = 'profitCalculatorItemTemplates_vi_JPY'; // 商品テンプレート用
+        const CURRENT_ITEMS_STORAGE_KEY = 'profitCalculatorCurrentItems_vi_JPY'; // 計算中商品リスト用
+
+        // 商品データ (計算中リスト)
         let items = [];
-        let nextItemId = 0; // 各アイテムにユニークなIDを付与
-        const TEMPLATE_STORAGE_KEY = 'profitCalculatorItemTemplates_vi_JPY'; // ローカルストレージキー (ベトナム語表示・円通貨版)
+        let nextItemId = 0;
+
+        // --- ローカルストレージ関連関数 ---
+        /**
+         * ローカルストレージからデータを読み込む
+         * @param {string} key - 読み込むデータのキー
+         * @returns {any} 読み込んだデータ (JSONパース済み)、またはキーが存在しない場合はnull
+         */
+        function loadFromLocalStorage(key) {
+            const dataJson = localStorage.getItem(key);
+            return dataJson ? JSON.parse(dataJson) : null;
+        }
+
+        /**
+         * データをローカルストレージに保存する
+         * @param {string} key - 保存するデータのキー
+         * @param {any} data - 保存するデータ (JSONシリアライズ可能であること)
+         */
+        function saveToLocalStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
 
         // --- テンプレート関連の関数 ---
-        /**
-         * ローカルストレージから商品テンプレートを読み込む
-         * @returns {object} 商品テンプレートのオブジェクト
-         */
-        function loadTemplatesFromLocalStorage() {
-            const templatesJson = localStorage.getItem(TEMPLATE_STORAGE_KEY);
-            return templatesJson ? JSON.parse(templatesJson) : {};
+        function loadTemplates() {
+            return loadFromLocalStorage(TEMPLATE_STORAGE_KEY) || {};
         }
 
-        /**
-         * 商品テンプレートをローカルストレージに保存する
-         * @param {object} templates - 保存する商品テンプレートのオブジェクト
-         */
-        function saveTemplatesToLocalStorage(templates) {
-            localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+        function saveTemplates(templates) {
+            saveToLocalStorage(TEMPLATE_STORAGE_KEY, templates);
         }
 
-        /**
-         * テンプレート選択ドロップダウンを更新する
-         */
         function populateTemplateSelector() {
-            const templates = loadTemplatesFromLocalStorage();
-            itemTemplateSelect.innerHTML = '<option value="">Chọn mẫu...</option>'; // デフォルトオプション
-
-            const sortedTemplateNames = Object.keys(templates).sort(); // 商品名でソート
+            const templates = loadTemplates();
+            itemTemplateSelect.innerHTML = '<option value="">Chọn mẫu...</option>';
+            const sortedTemplateNames = Object.keys(templates).sort();
 
             if (sortedTemplateNames.length === 0) {
                 const option = document.createElement('option');
                 option.textContent = 'Chưa có mẫu nào được lưu';
                 option.disabled = true;
                 itemTemplateSelect.appendChild(option);
+                deleteTemplateBtn.disabled = true; // テンプレートがなければ削除ボタンを無効化
             } else {
                 sortedTemplateNames.forEach(templateName => {
                     const option = document.createElement('option');
@@ -221,30 +233,69 @@
                     option.textContent = templateName;
                     itemTemplateSelect.appendChild(option);
                 });
+                deleteTemplateBtn.disabled = false; // テンプレートがあれば削除ボタンを有効化
             }
         }
 
-        /**
-         * テンプレート選択時の処理: 選択されたテンプレート情報を入力フォームに設定する
-         */
         itemTemplateSelect.addEventListener('change', (event) => {
             const selectedTemplateName = event.target.value;
             if (selectedTemplateName) {
-                const templates = loadTemplatesFromLocalStorage();
+                const templates = loadTemplates();
                 const template = templates[selectedTemplateName];
                 if (template) {
                     itemNameInput.value = selectedTemplateName;
                     purchasePriceInput.value = template.purchasePrice;
                     sellingPriceInput.value = template.sellingPrice;
-                    errorMessageEl.textContent = ''; // エラーメッセージをクリア
+                    errorMessageEl.textContent = '';
                 }
             }
         });
-        // --- テンプレート関連の関数ここまで ---
+
+        deleteTemplateBtn.addEventListener('click', () => {
+            const selectedTemplateName = itemTemplateSelect.value;
+            if (!selectedTemplateName) {
+                alert('Vui lòng chọn một mẫu để xóa.'); // "削除するテンプレートを選択してください。"
+                return;
+            }
+            if (confirm(`Bạn có chắc muốn xóa mẫu "${selectedTemplateName}" không?`)) { // `テンプレート「${selectedTemplateName}」を削除してもよろしいですか？`
+                const templates = loadTemplates();
+                delete templates[selectedTemplateName];
+                saveTemplates(templates);
+                populateTemplateSelector();
+                // もし削除したテンプレートが入力フォームに表示されていた場合、クリアする
+                if (itemNameInput.value === selectedTemplateName) {
+                    itemNameInput.value = '';
+                    purchasePriceInput.value = '';
+                    sellingPriceInput.value = '';
+                }
+                alert(`Đã xóa mẫu "${selectedTemplateName}".`); // `テンプレート「${selectedTemplateName}」を削除しました。`
+            }
+        });
+
+        // --- 計算中商品リスト関連の関数 ---
+        /**
+         * 計算中の商品リストとIDカウンターをローカルストレージから読み込む
+         */
+        function loadCurrentItems() {
+            const savedState = loadFromLocalStorage(CURRENT_ITEMS_STORAGE_KEY);
+            if (savedState) {
+                items = savedState.items || [];
+                nextItemId = savedState.nextItemId || 0;
+            } else {
+                items = [];
+                nextItemId = 0;
+            }
+        }
 
         /**
-         * 「商品がありません」行の表示/非表示を切り替える
+         * 計算中の商品リストとIDカウンターをローカルストレージに保存する
          */
+        function saveCurrentItems() {
+            saveToLocalStorage(CURRENT_ITEMS_STORAGE_KEY, { items, nextItemId });
+        }
+
+
+        // --- UI更新と計算ロジック ---
         function updateNoItemsRowVisibility() {
             if (items.length === 0 && noItemsRow) {
                 noItemsRow.style.display = 'table-row';
@@ -253,23 +304,14 @@
             }
         }
         
-        /**
-         * 金額を日本円形式でフォーマットする関数
-         * @param {number} amount - フォーマットする金額
-         * @returns {string} フォーマットされた通貨文字列 (例: "￥1,000")
-         */
         function formatCurrency(amount) {
             return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
         }
 
-        /**
-         * 商品リストの表示と集計結果を更新する
-         */
         function renderItemsAndTotals() {
-            // 商品リスト表示部分をクリア (ヘッダーは残す)
             itemList.innerHTML = ''; 
             if (items.length === 0 && noItemsRow) {
-                 itemList.appendChild(noItemsRow); // 「商品がありません」行を再追加
+                 itemList.appendChild(noItemsRow);
             }
 
             let totalPurchase = 0;
@@ -280,9 +322,8 @@
                 totalPurchase += item.purchasePrice;
                 totalSelling += item.sellingPrice;
 
-                const row = itemList.insertRow(); // 新しい行をテーブルに追加
-                row.setAttribute('data-id', item.id); // 行に商品IDを設定 (削除時に使用)
-                // 行のHTML内容を設定
+                const row = itemList.insertRow();
+                row.setAttribute('data-id', item.id);
                 row.innerHTML = `
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${item.name}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${formatCurrency(item.purchasePrice)}</td>
@@ -294,106 +335,95 @@
                 `;
             });
 
-            // 集計結果を更新して表示
             totalPurchasePriceEl.textContent = formatCurrency(totalPurchase);
             totalSellingPriceEl.textContent = formatCurrency(totalSelling);
             const totalProfit = totalSelling - totalPurchase;
             totalProfitEl.textContent = formatCurrency(totalProfit);
-            // 利益に応じて文字色を変更
             totalProfitEl.className = `text-2xl font-semibold ${totalProfit >= 0 ? 'text-indigo-600' : 'text-red-600'}`;
             
-            updateNoItemsRowVisibility(); // 「商品がありません」行の表示を更新
-            addDeleteEventListeners(); // 新しく生成された削除ボタンにイベントリスナーを再設定
+            updateNoItemsRowVisibility();
+            addDeleteEventListeners();
+            saveCurrentItems(); // 商品リストが変更されるたびに保存
         }
 
-        /**
-         * 商品追加ボタンのクリックイベント処理
-         */
         addItemBtn.addEventListener('click', () => {
             const itemName = itemNameInput.value.trim();
             const purchasePrice = parseFloat(purchasePriceInput.value);
             const sellingPrice = parseFloat(sellingPriceInput.value);
 
-            // 入力バリデーション
-            errorMessageEl.textContent = ''; // 前のエラーメッセージをクリア
+            errorMessageEl.textContent = '';
             if (!itemName) {
-                errorMessageEl.textContent = 'Vui lòng nhập tên sản phẩm.'; // ベトナム語のエラーメッセージ
+                errorMessageEl.textContent = 'Vui lòng nhập tên sản phẩm.';
                 itemNameInput.focus();
                 return;
             }
             if (isNaN(purchasePrice) || purchasePrice < 0) {
-                errorMessageEl.textContent = 'Vui lòng nhập giá nhập hợp lệ.'; // ベトナム語のエラーメッセージ
+                errorMessageEl.textContent = 'Vui lòng nhập giá nhập hợp lệ.';
                 purchasePriceInput.focus();
                 return;
             }
             if (isNaN(sellingPrice) || sellingPrice < 0) {
-                errorMessageEl.textContent = 'Vui lòng nhập giá bán hợp lệ.'; // ベトナム語のエラーメッセージ
+                errorMessageEl.textContent = 'Vui lòng nhập giá bán hợp lệ.';
                 sellingPriceInput.focus();
                 return;
             }
 
-            // 新しい商品オブジェクトを作成
             const newItem = {
                 id: nextItemId++,
                 name: itemName,
                 purchasePrice: purchasePrice,
                 sellingPrice: sellingPrice
             };
-            items.push(newItem); // 商品リストに追加
+            items.push(newItem);
 
-            // 商品情報をテンプレートとしてローカルストレージに保存/更新
-            const templates = loadTemplatesFromLocalStorage();
-            templates[itemName] = { // 商品名をキーとして価格情報を保存
+            const templates = loadTemplates();
+            templates[itemName] = { 
                 purchasePrice: purchasePrice,
                 sellingPrice: sellingPrice
             };
-            saveTemplatesToLocalStorage(templates);
-            populateTemplateSelector(); // テンプレート選択ドロップダウンを更新
+            saveTemplates(templates);
+            populateTemplateSelector(); 
 
-            renderItemsAndTotals(); // 商品リストと集計を再描画
+            renderItemsAndTotals();
 
-            itemTemplateSelect.value = ""; // テンプレート選択をリセット
+            itemTemplateSelect.value = ""; 
+            // 入力フィールドをクリアするかどうかはユーザーの好みによる
+            // itemNameInput.value = '';
+            // purchasePriceInput.value = '';
+            // sellingPriceInput.value = '';
+            // itemNameInput.focus();
         });
 
-        /**
-         * すべての削除ボタンにイベントリスナーを追加する
-         */
         function addDeleteEventListeners() {
             const deleteButtons = document.querySelectorAll('.delete-item-btn');
             deleteButtons.forEach(button => {
-                // 重複してリスナーが追加されないように、一度削除してから追加
                 button.removeEventListener('click', handleDeleteItem);
                 button.addEventListener('click', handleDeleteItem);
             });
         }
         
-        /**
-         * 商品削除処理 (計算リストからのみ削除)
-         * @param {Event} event - クリックイベントオブジェクト
-         */
         function handleDeleteItem(event) {
-            const itemIdToDelete = parseInt(event.target.dataset.id); // 削除する商品のIDを取得
-            items = items.filter(item => item.id !== itemIdToDelete); // IDが一致しない商品のみを残す
-            renderItemsAndTotals(); // リストと集計を再描画
+            const itemIdToDelete = parseInt(event.target.dataset.id);
+            items = items.filter(item => item.id !== itemIdToDelete);
+            renderItemsAndTotals();
         }
 
-        /**
-         * 「計算リストをクリア」ボタンのクリックイベント処理
-         */
         clearAllBtn.addEventListener('click', () => {
-            if (confirm('Bạn có chắc muốn xóa danh sách sản phẩm hiện tại không? (Các mẫu đã lưu sẽ không bị xóa.)')) { // ベトナム語の確認メッセージ
-                items = []; // 商品リストを空にする
-                nextItemId = 0; // 商品IDのカウンターをリセット
-                renderItemsAndTotals(); // リストと集計を再描画
-                errorMessageEl.textContent = ''; // エラーメッセージをクリア
+            if (confirm('Bạn có chắc muốn xóa danh sách sản phẩm hiện tại không? (Các mẫu đã lưu sẽ không bị xóa.)')) {
+                items = [];
+                nextItemId = 0;
+                localStorage.removeItem(CURRENT_ITEMS_STORAGE_KEY); // 保存された計算中リストも削除
+                renderItemsAndTotals(); // これにより空のリストが保存される
+                errorMessageEl.textContent = '';
             }
         });
 
-        // 初期化処理: DOMコンテンツが読み込まれた後に実行
+        // 初期化処理
         document.addEventListener('DOMContentLoaded', () => {
-            updateNoItemsRowVisibility(); // 「商品がありません」行の初期表示制御
-            populateTemplateSelector();   // テンプレート選択ドロップダウンの初期化
-            renderItemsAndTotals();       // 計算リストの初期表示
+            loadCurrentItems(); // 保存された計算中リストを読み込む
+            populateTemplateSelector();
+            renderItemsAndTotals(); // 読み込んだリストで初期表示し、保存も行う
+            updateNoItemsRowVisibility(); // この呼び出しはrenderItemsAndTotals内で行われるため重複するかも、確認。
         });
     </script>
 </body>
