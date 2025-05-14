@@ -67,18 +67,18 @@
                 margin: 1rem;
                 padding: 1rem;
             }
-            .input-grid { /* Renamed for clarity */
-                grid-template-columns: repeat(1, minmax(0, 1fr)); /* Stack inputs on small screens */
+            .input-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
             }
             .col-span-full {
                 grid-column: span 1 / span 1;
             }
             .table th, .table td {
                 padding: 0.5rem;
-                font-size: 0.875rem; /* Smaller text on small screens */
+                font-size: 0.875rem;
             }
             .summary-grid {
-                grid-template-columns: repeat(1, minmax(0, 1fr)); /* Stack summary items */
+                grid-template-columns: repeat(1, minmax(0, 1fr));
             }
         }
     </style>
@@ -103,12 +103,12 @@
                     <input type="text" id="itemName" class="form-input" placeholder="Ví dụ: Áo Thun">
                 </div>
                 <div>
-                    <label for="purchasePrice" class="block text-sm font-medium text-gray-700 mb-1">Giá Nhập (VNĐ)</label>
-                    <input type="number" id="purchasePrice" class="form-input" placeholder="Ví dụ: 50000" min="0">
+                    <label for="purchasePrice" class="block text-sm font-medium text-gray-700 mb-1">Giá Nhập (Yên)</label>
+                    <input type="number" id="purchasePrice" class="form-input" placeholder="Ví dụ: 1000" min="0">
                 </div>
                 <div>
-                    <label for="sellingPrice" class="block text-sm font-medium text-gray-700 mb-1">Giá Bán (VNĐ)</label>
-                    <input type="number" id="sellingPrice" class="form-input" placeholder="Ví dụ: 100000" min="0">
+                    <label for="sellingPrice" class="block text-sm font-medium text-gray-700 mb-1">Giá Bán (Yên)</label>
+                    <input type="number" id="sellingPrice" class="form-input" placeholder="Ví dụ: 1500" min="0">
                 </div>
                 <div class="col-span-full sm:col-span-2 md:col-span-1">
                     <button id="addItemBtn" class="btn btn-primary w-full">Thêm Sản Phẩm</button>
@@ -134,7 +134,7 @@
                         <tr id="no-items-row">
                             <td colspan="5" class="px-4 py-4 text-sm text-gray-500 text-center">Chưa có sản phẩm nào.</td>
                         </tr>
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -144,15 +144,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 summary-grid">
                 <div class="p-4 bg-white rounded-lg shadow-sm">
                     <p class="text-sm font-medium text-gray-500">Tổng Giá Nhập</p>
-                    <p id="totalPurchasePrice" class="text-2xl font-semibold text-gray-800">0 VNĐ</p>
+                    <p id="totalPurchasePrice" class="text-2xl font-semibold text-gray-800">0 円</p>
                 </div>
                 <div class="p-4 bg-white rounded-lg shadow-sm">
                     <p class="text-sm font-medium text-gray-500">Tổng Giá Bán</p>
-                    <p id="totalSellingPrice" class="text-2xl font-semibold text-gray-800">0 VNĐ</p>
+                    <p id="totalSellingPrice" class="text-2xl font-semibold text-gray-800">0 円</p>
                 </div>
                 <div class="p-4 bg-white rounded-lg shadow-sm">
                     <p class="text-sm font-medium text-gray-500">Tổng Lợi Nhuận</p>
-                    <p id="totalProfit" class="text-2xl font-semibold text-indigo-600">0 VNĐ</p>
+                    <p id="totalProfit" class="text-2xl font-semibold text-indigo-600">0 円</p>
                 </div>
             </div>
         </div>
@@ -177,10 +177,10 @@
         const errorMessageEl = document.getElementById('error-message');
         const itemTemplateSelect = document.getElementById('itemTemplateSelect');
 
-        // 商品データを格納する配列
-        let items = []; // 現在計算中の商品リスト
-        let nextItemId = 0;
-        const TEMPLATE_STORAGE_KEY = 'profitCalculatorItemTemplates_vi'; // ローカルストレージキーを区別（オプション）
+        // 商品データを格納する配列 (現在計算中の商品リスト)
+        let items = [];
+        let nextItemId = 0; // 各アイテムにユニークなIDを付与
+        const TEMPLATE_STORAGE_KEY = 'profitCalculatorItemTemplates_vi_JPY'; // ローカルストレージキー (ベトナム語表示・円通貨版)
 
         // --- テンプレート関連の関数 ---
         /**
@@ -207,7 +207,7 @@
             const templates = loadTemplatesFromLocalStorage();
             itemTemplateSelect.innerHTML = '<option value="">Chọn mẫu...</option>'; // デフォルトオプション
 
-            const sortedTemplateNames = Object.keys(templates).sort(); 
+            const sortedTemplateNames = Object.keys(templates).sort(); // 商品名でソート
 
             if (sortedTemplateNames.length === 0) {
                 const option = document.createElement('option');
@@ -225,7 +225,7 @@
         }
 
         /**
-         * テンプレート選択時の処理
+         * テンプレート選択時の処理: 選択されたテンプレート情報を入力フォームに設定する
          */
         itemTemplateSelect.addEventListener('change', (event) => {
             const selectedTemplateName = event.target.value;
@@ -233,16 +233,18 @@
                 const templates = loadTemplatesFromLocalStorage();
                 const template = templates[selectedTemplateName];
                 if (template) {
-                    itemNameInput.value = selectedTemplateName; 
+                    itemNameInput.value = selectedTemplateName;
                     purchasePriceInput.value = template.purchasePrice;
                     sellingPriceInput.value = template.sellingPrice;
-                    errorMessageEl.textContent = ''; 
+                    errorMessageEl.textContent = ''; // エラーメッセージをクリア
                 }
             }
         });
         // --- テンプレート関連の関数ここまで ---
 
-        // 初期表示の制御
+        /**
+         * 「商品がありません」行の表示/非表示を切り替える
+         */
         function updateNoItemsRowVisibility() {
             if (items.length === 0 && noItemsRow) {
                 noItemsRow.style.display = 'table-row';
@@ -251,16 +253,23 @@
             }
         }
         
-        // 金額をフォーマットする関数 (ベトナムドン形式)
+        /**
+         * 金額を日本円形式でフォーマットする関数
+         * @param {number} amount - フォーマットする金額
+         * @returns {string} フォーマットされた通貨文字列 (例: "￥1,000")
+         */
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+            return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
         }
 
-        // 商品リストと集計を更新する関数
+        /**
+         * 商品リストの表示と集計結果を更新する
+         */
         function renderItemsAndTotals() {
+            // 商品リスト表示部分をクリア (ヘッダーは残す)
             itemList.innerHTML = ''; 
             if (items.length === 0 && noItemsRow) {
-                 itemList.appendChild(noItemsRow);
+                 itemList.appendChild(noItemsRow); // 「商品がありません」行を再追加
             }
 
             let totalPurchase = 0;
@@ -271,8 +280,9 @@
                 totalPurchase += item.purchasePrice;
                 totalSelling += item.sellingPrice;
 
-                const row = itemList.insertRow();
-                row.setAttribute('data-id', item.id);
+                const row = itemList.insertRow(); // 新しい行をテーブルに追加
+                row.setAttribute('data-id', item.id); // 行に商品IDを設定 (削除時に使用)
+                // 行のHTML内容を設定
                 row.innerHTML = `
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${item.name}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${formatCurrency(item.purchasePrice)}</td>
@@ -284,98 +294,106 @@
                 `;
             });
 
+            // 集計結果を更新して表示
             totalPurchasePriceEl.textContent = formatCurrency(totalPurchase);
             totalSellingPriceEl.textContent = formatCurrency(totalSelling);
             const totalProfit = totalSelling - totalPurchase;
             totalProfitEl.textContent = formatCurrency(totalProfit);
+            // 利益に応じて文字色を変更
             totalProfitEl.className = `text-2xl font-semibold ${totalProfit >= 0 ? 'text-indigo-600' : 'text-red-600'}`;
             
-            updateNoItemsRowVisibility();
-            addDeleteEventListeners();
+            updateNoItemsRowVisibility(); // 「商品がありません」行の表示を更新
+            addDeleteEventListeners(); // 新しく生成された削除ボタンにイベントリスナーを再設定
         }
 
-        // 商品追加処理
+        /**
+         * 商品追加ボタンのクリックイベント処理
+         */
         addItemBtn.addEventListener('click', () => {
             const itemName = itemNameInput.value.trim();
             const purchasePrice = parseFloat(purchasePriceInput.value);
             const sellingPrice = parseFloat(sellingPriceInput.value);
 
-            errorMessageEl.textContent = '';
+            // 入力バリデーション
+            errorMessageEl.textContent = ''; // 前のエラーメッセージをクリア
             if (!itemName) {
-                errorMessageEl.textContent = 'Vui lòng nhập tên sản phẩm.';
+                errorMessageEl.textContent = 'Vui lòng nhập tên sản phẩm.'; // ベトナム語のエラーメッセージ
                 itemNameInput.focus();
                 return;
             }
             if (isNaN(purchasePrice) || purchasePrice < 0) {
-                errorMessageEl.textContent = 'Vui lòng nhập giá nhập hợp lệ.';
+                errorMessageEl.textContent = 'Vui lòng nhập giá nhập hợp lệ.'; // ベトナム語のエラーメッセージ
                 purchasePriceInput.focus();
                 return;
             }
             if (isNaN(sellingPrice) || sellingPrice < 0) {
-                errorMessageEl.textContent = 'Vui lòng nhập giá bán hợp lệ.';
+                errorMessageEl.textContent = 'Vui lòng nhập giá bán hợp lệ.'; // ベトナム語のエラーメッセージ
                 sellingPriceInput.focus();
                 return;
             }
 
-            // 商品をリストに追加
+            // 新しい商品オブジェクトを作成
             const newItem = {
                 id: nextItemId++,
                 name: itemName,
                 purchasePrice: purchasePrice,
                 sellingPrice: sellingPrice
             };
-            items.push(newItem);
+            items.push(newItem); // 商品リストに追加
 
-            // 商品情報をテンプレートとして保存/更新
+            // 商品情報をテンプレートとしてローカルストレージに保存/更新
             const templates = loadTemplatesFromLocalStorage();
-            templates[itemName] = { 
+            templates[itemName] = { // 商品名をキーとして価格情報を保存
                 purchasePrice: purchasePrice,
                 sellingPrice: sellingPrice
             };
             saveTemplatesToLocalStorage(templates);
-            populateTemplateSelector(); 
+            populateTemplateSelector(); // テンプレート選択ドロップダウンを更新
 
-            renderItemsAndTotals();
+            renderItemsAndTotals(); // 商品リストと集計を再描画
 
-            // 入力フィールドをクリア
-            // itemNameInput.value = ''; 
-            // purchasePriceInput.value = '';
-            // sellingPriceInput.value = '';
-            // itemNameInput.focus();
             itemTemplateSelect.value = ""; // テンプレート選択をリセット
         });
 
-        // 削除ボタンのイベントリスナーを追加する関数
+        /**
+         * すべての削除ボタンにイベントリスナーを追加する
+         */
         function addDeleteEventListeners() {
             const deleteButtons = document.querySelectorAll('.delete-item-btn');
             deleteButtons.forEach(button => {
+                // 重複してリスナーが追加されないように、一度削除してから追加
                 button.removeEventListener('click', handleDeleteItem);
                 button.addEventListener('click', handleDeleteItem);
             });
         }
         
-        // 商品削除処理 (計算リストからのみ)
+        /**
+         * 商品削除処理 (計算リストからのみ削除)
+         * @param {Event} event - クリックイベントオブジェクト
+         */
         function handleDeleteItem(event) {
-            const itemIdToDelete = parseInt(event.target.dataset.id);
-            items = items.filter(item => item.id !== itemIdToDelete);
-            renderItemsAndTotals();
+            const itemIdToDelete = parseInt(event.target.dataset.id); // 削除する商品のIDを取得
+            items = items.filter(item => item.id !== itemIdToDelete); // IDが一致しない商品のみを残す
+            renderItemsAndTotals(); // リストと集計を再描画
         }
 
-        // 計算リストクリア処理
+        /**
+         * 「計算リストをクリア」ボタンのクリックイベント処理
+         */
         clearAllBtn.addEventListener('click', () => {
-            if (confirm('Bạn có chắc muốn xóa danh sách sản phẩm hiện tại không? (Các mẫu đã lưu sẽ không bị xóa.)')) {
-                items = [];
-                nextItemId = 0;
-                renderItemsAndTotals();
-                errorMessageEl.textContent = '';
+            if (confirm('Bạn có chắc muốn xóa danh sách sản phẩm hiện tại không? (Các mẫu đã lưu sẽ không bị xóa.)')) { // ベトナム語の確認メッセージ
+                items = []; // 商品リストを空にする
+                nextItemId = 0; // 商品IDのカウンターをリセット
+                renderItemsAndTotals(); // リストと集計を再描画
+                errorMessageEl.textContent = ''; // エラーメッセージをクリア
             }
         });
 
-        // 初期化処理
+        // 初期化処理: DOMコンテンツが読み込まれた後に実行
         document.addEventListener('DOMContentLoaded', () => {
-            updateNoItemsRowVisibility(); 
-            populateTemplateSelector(); 
-            renderItemsAndTotals(); 
+            updateNoItemsRowVisibility(); // 「商品がありません」行の初期表示制御
+            populateTemplateSelector();   // テンプレート選択ドロップダウンの初期化
+            renderItemsAndTotals();       // 計算リストの初期表示
         });
     </script>
 </body>
